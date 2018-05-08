@@ -6,5 +6,7 @@ publishDir = "../output"
 
 theme="hyde"
 
+googleAnalytics = "UA-10412053-2"
+
 [params]
     disqusShortname = "stingh711"

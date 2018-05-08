@@ -1,7 +1,7 @@
 +++
 date = "2014-08-01T19:49:37+08:00"
-title = "dynamic form with springmvc and thymeleaf"
-Description = "Dynamic form with SpringMVC and thymeleaf"
+title = "Dynamic form with springmvc and thymeleaf"
+description = "Dynamic form with SpringMVC and thymeleaf"
 +++
 
 ## Requirements

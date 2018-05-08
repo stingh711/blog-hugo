@@ -1,6 +1,6 @@
 +++
 date = "2017-04-05T15:34:25+08:00"
-title = "book reading record 2017"
+title = "Book reading record 2017"
 description = "Book reading records of 2017"
 +++
 

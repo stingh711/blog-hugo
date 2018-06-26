@@ -1,0 +1,319 @@
+#+HUGO_BASE_DIR: ./
+#+SEQ_TODO: TODO DRAFT DONE
+
+* posts
+  :PROPERTIES:
+  :EXPORT_HUGO_SECTION: posts
+  :EXPORT_HUGO_TYPE: post
+  :END:
+** DONE Javascript notes                             :programming:javascript:
+   :PROPERTIES:
+   :EXPORT_FILE_NAME: javascript-notes
+   :EXPORT_DATE: 2018-06-16
+   :END:
+   Just some notes on some popular javascript libraries.
+*** bootstrap-daterangepicker
+**** How to get startDate and endDate
+     #+begin_src javascript
+     var range = $("#range").daterangepicker();
+     var start = range.data("daterangepicker").startDate;
+     var end = range.data("daterangepicker").endDate;
+     #+end_src
+
+*** lodash
+**** map
+     #+begin_src javascript
+     var data = [{label: '4/1', value: 10}, {label: '4/2', value: 14}];
+     var labels = _.map(data, function(item) { return item.label; });
+     var values = _.map(data, function(item) { return item.value; });
+     #+end_src
+
+     It is especially useful when preparing data for some chart libraries.
+
+**** convert array to object
+     #+begin_src javascript
+     var data = [{value: 0, name: 'Working'}, {value: 1, name: 'Idle'}];
+     var result = _.chain(data).keyBy('value').mapValues('name').value();
+     //The result will be {0: 'Working', 1: 'Idle'}
+     #+end_src
+
+*** jquery
+**** How to pass array when using $.get
+     #+begin_src javascript
+     $.get("/api", {"name[]": ["George", "Jacky"]}, function(data) {});
+     #+end_src
+
+     If you are using Spring MVC for the server side, here is the relative code to receive multiple parameters.
+     #+begin_src java
+     @GetMapping("/api")
+     @ResponseBody
+     public YourResponseEntity api(@RequestParam("name") String[] names) {
+     //deal with names
+     }
+     #+end_src
+
+*** es6
+**** How to get keys of an object in javascript
+   #+begin_src javascript
+   const data = {name: "sting", age: 10};
+   Object.keys(data);
+   #+end_src
+** DONE Pandas in jupyter                                     :pandas:python:
+   :PROPERTIES:
+   :EXPORT_FILE_NAME: pandas-in-jupyter
+   :EXPORT_DATE: 2018-06-17
+   :END:
+   Read data from mysql and draw a chart.
+   #+begin_src python
+%matplotlib inline
+import pymysql
+import pandas as pd
+import pandas.io.sql as sql
+   
+conn = pymysql.connect(host='192.168.56.1', user='root', passwd='qwer-1235', db='pdss')
+
+s = 'select number_value from quality_data_item_record where item_id = 11'
+df = sql.read_sql_query(s, conn)
+
+df.plot()
+   #+end_src
+   
+** DONE How to remove vscode's decorator warning?  :vscode:editor:javascript:
+   :PROPERTIES:
+   :EXPORT_FILE_NAME: how-to-remove-vscode-decorator-warning
+   :EXPORT_DATE: 2018-06-19
+   :END:
+   
+   1. Create a tsconfig.json under root directory.
+   2. Add following code to tsconfig.json
+   #+begin_src json
+   {
+       "compilerOptions": {
+           "experimentalDecorators": true,
+           "allowJs": true
+       }
+   }
+   #+end_src
+   3. Restart vscode
+** DONE Dynamic forms with springmvc and thymeleaf                   :spring:
+   :PROPERTIES:
+   :EXPORT_FILE_NAME: dynamic-form-with-springmvc-and-thymeleaf
+   :EXPORT_DATE: 2014-08-01
+   :END:
+*** Requirements
+
+    SubjectGroup and SubjectGroupOption has one-to-many relationship. When adding a subject group, subject group options can be added inline.
+
+*** Things I’ve learned.
+    
+    1. When adding an option, don’t need to use javascript to handle the added html snippet. Just submit the add request to controller and handle the adding in the controller (Add a new options into the option list of subject group), then return to the add page. Spring mvc’s data binding and thyme leaf’s for loop will handle the html. (In EDC, I use javascript to append option html. It works. But there are some duplicate codes in JSP and javascript)
+    2. Can use the same way to handle subject option removing.
+    3. If there are multiple submit button in one form. We can use button’s name to separate them. In controller, use RequestMapping’s params to make the submit request to the right controller method.
+
+*** Code
+
+    SubjectGroupController.java
+
+    #+begin_src java
+package edc.web;
+
+import edc.model.SubjectGroup;
+import edc.model.SubjectGroupOption;
+import edc.service.SubjectGroupService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+    
+@Controller
+@RequestMapping("/sg")
+public class SubjectGroupController {
+    private SubjectGroupService subjectGroupService;
+
+    @Autowired
+    public void setSubjectGroupService(SubjectGroupService subjectGroupService) {
+	this.subjectGroupService = subjectGroupService;
+    }
+
+    @RequestMapping(value = "add")
+    public String add(SubjectGroup subjectGroup) {
+	return "subjectGroup/add";
+    }
+
+    @RequestMapping(value = "add", params = {"addOption"})
+    public String addOption(SubjectGroup subjectGroup, BindingResult result) {
+	subjectGroup.getOptions().add(new SubjectGroupOption());
+	return "subjectGroup/add";
+    }
+
+    @RequestMapping(value = "add", method = RequestMethod.POST)
+    public String save(SubjectGroup subjectGroup, BindingResult result) {
+	this.subjectGroupService.save(subjectGroup);
+	return "redirect:/sg/add";
+    }
+}
+    #+end_src
+
+    add.html
+
+    #+begin_src html
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="utf-8"/>
+    <title></title>
+  </head>
+  <body>
+    <section>
+      <h2>Add Subject Group</h2>
+      <form action="#" th:action="@{/sg/add}" th:object="${subjectGroup}" method="POST">
+	<p><input type="text" th:field="*{name}" placeholder="Name..."/></p>
+	<h3>Options</h3>
+	<button type="submit" name="addOption">Add Option</button>
+	<table>
+	  <tr th:each="option, rowStat : *{options}">
+	    <td><input type="text" th:field="*{options[__${rowStat.index}__].label}" placeholder="Option..."/></td>
+	  </tr>
+	</table>
+	<button type="submit">Add</button>
+      </form>
+    </section>
+  </body>
+</html>
+    #+end_src
+** DONE Notes about postgresql                          :database:postgresql:
+  :PROPERTIES:
+  :EXPORT_FILE_NAME: notes-about-postgresql
+  :EXPORT_DATE: 2018-05-08
+  :END:
+*** How to generate and insert test data?
+    For example, my table is like: ~create table (time timestamp, value double precision, sensor integer)~. If I want to insert some test data, I can use function ~generate_series~.
+    Following sql will insert 5000 rows:
+    #+begin_src sql
+    insert into test (time, sensor, value) select now(), i, random() from generate_series(1, 5000) s(i)
+    #+end_src
+*** How to view disk usage?
+**** View table size
+     #+begin_src sql
+     select pg_size_pretty(pg_relation_size('pressure_01'))
+     #+end_src
+**** View database size
+     #+begin_src sql
+     select pg_size_pretty(pg_database_size('pressure_01'))
+     #+end_src
+** DONE Use org-journal to keep my daily notes                        :emacs:
+    :PROPERTIES:
+    :EXPORT_FILE_NAME: use-org-journal
+    :EXPORT_DATE: 2018-06-23
+    :END:
+
+[[https://github.com/bastibe/org-journal][org-journal]] is small package to write your journal in org mode. 
+Like diary mode, it will generate one file per day, but you can use org-mode instead of plain dairy mode.
+
+To create a journal, just press ~C-c c-j~, an org-mode item will be created with curren time.
+
+It is also provided calendar binding, so you can view your journal from calendar view.
+** DONE Write a CustomPaginator for django rest framework     :python:django:
+   :PROPERTIES:
+   :EXPORT_FILE_NAME: custom-paginator-for-drf
+   :EXPORT_DATE: 2018-06-23
+   :END:
+   
+   Pagination is essential part for a REST api. Django rest framework provides an easy to way to add pagination to current API and a lot of useful built-in implementations. However, in order to work with a specified frontend component, a customized version is needed.
+   
+   Customizing is easy in DRF, just extends a current one and override it get_paginated_response method. For example, the following one uses the page number pagination ,which means you can pass page=n in the URL to get the nth page. If pageSize is specified in request url, it will be used or the default page_size will be used
+
+   #+begin_src python
+class CustomPagination(pagination.PageNumberPagination):
+    page_size = 15
+    page_size_query_param = 'pageSize'
+       
+    def get_paginated_response(self, data):
+        return Response({
+            'pagination': {
+                'total': self.page.paginator.count,
+                'pageSize': self.page.paginator.per_page,
+                'current': self.page.number,
+                },
+                'list': data
+            })
+   #+end_src
+   
+   The response format is customized for antd's table component.
+
+   There are two ways to tell your view to use it.
+   - Specify ~pagination_class=CustomPagination~ in your views.
+   - Configure it in settings. Doc is [[http://www.django-rest-framework.org/api-guide/pagination/][here]].
+** DONE Use django-filter to add filter for REST api          :python:django:
+   :PROPERTIES:
+   :EXPORT_FILE_NAME: use-django-filter-to-add-filter-for-rest-api
+   :EXPORT_DATE: 2018-06-23
+   :END:
+   For a REST list api, filtering and sorting is the basic requirements. Using django-filter, we can add these functions with only a few lines of codes.
+
+   For example, if we have a model as follows,
+   #+begin_src python
+class Product(models.Model):
+    name = models.CharField(max_length=100)
+    created_at = models.DatetimeField()
+   #+end_src
+
+   We will write relative serializer and view.
+
+   #+begin_src python
+class ProductSerializer(serializers.ModelSerializer):
+    class Meta:
+        fields = '__all__'
+
+class ProductListView(generics.ListView):
+    queryset = Product.objects.all()
+    serializer_class = ProductSerializer
+   #+end_src
+   
+   If we don't use django-filter, we can override ProductListview's get_queryset to implement filter. For example, to filter by name:
+
+   #+begin_src python
+def get_queryset(self):
+    queryset = Product.objects.all()
+    name = self.request.query_params.get('name', None)
+    if name is not None:
+        queryset = queryset.filter(name=name)
+    return queryset
+   #+end_src
+   
+   With django-filter, the code can be even simpler. We can just code like configuration to implement more advanced filters.
+   First, we install it with ~pip install django-filter~.
+   Then, we add a filter class in our views.
+   #+begin_src python
+class ProductFilter(django_filters.FilterSet):
+    sort = django_filters.OrderingFilter(fields=('created_at',))
+
+    class Meta:
+        model = Product
+        fields = ['name',]
+    #+end_src
+   Then modify our ProductListView by adding following two lines
+   #+begin_src python
+filter_backends = (DjangoFilterBackend,)
+filter_class = ProductFilter
+   #+end_src
+   
+   Now filter by name and sorting by created_at are both implemented. If the original list url is ~/products/~, to search by name, the url is ~/products/?name=iPhone~; to order by created_at desc, the url is ~/products/?sort=-created_at~.
+
+   Django-filter can implement more advanced features, e.g, filter by range, fuzzy search. Please refer to [[https://github.com/carltongibson/django-filter][Official doc]].
+
+
+
+** DONE Vscode's restclient is great
+   :PROPERTIES:
+   :EXPORT_FILE_NAME: vscode-restclient-is-great
+   :EXPORT_DATE: 2018-06-26
+   :END:
+   
+   Postman is an essential tool for the development of both frontend and backend. However, sometimes I hate its save function. I hate to find a right folder to save a request. What I need is just a very simple tool to test some API and it will be just there when I need it. Then I found REST Client extension for Vscode.
+
+   With this extension, you can save your request in plain text. You can use vscode to edit it (Syntax highlight and indent is well supported) and then just run it in vscode too. You don't need to think which folder should I put this request, just write it down in a text file.
+
+   Actually, there is a same extension for emacs, but it doesn't work on my windows and I don't know why.

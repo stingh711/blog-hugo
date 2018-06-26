@@ -1,12 +1,17 @@
-languageCode = "en-us"
+languageCode = "en"
 title = "Sting's Note"
 baseURL = "https://stingh711.github.io/"
 
 publishDir = "../output"
 
-theme="hyde"
+theme="er"
 
 googleAnalytics = "UA-10412053-2"
+paginate = 10
+
+[outputs]
+home = ["HTML"]
 
 [params]
     disqusShortname = "stingh711"
+    DateForm = "02 Jan 2006"
